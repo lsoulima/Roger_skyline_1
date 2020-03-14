@@ -52,10 +52,9 @@ DigitalOceanDigitalOcean
 How To Use psad to Detect Network Intrusion Attempts on an Ubuntu VPS | DigitalOcean
 A network intrusion detection application can monitor your network interfaces for suspicious traffic and attempted security breaches. In this guide, we will configure a tool called psad to monitor our firewall logs and determine if there is a problem.(92 kB)
 https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg
-12:39
 
 ** Propose a functional solution for deployment automation. |-> Install FTP Server apt-get install vsftpd |-> Add user for FTP Server adduser ftpuser |-> Change home folder usermod -d /var/www ftpuser |-> Change owner chown ftpuser:ftpuser /var/www/ and chown ftpuser:ftpuser /var/www/html/ |-> Config vsftp in vim /etc/vsftpd.conf creat bak file config cp /etc/vsftpd.conf /etc/vsftpd.conf.bak Allow ftp users to write to the server write_enable=YES Deny ftp users browsing outside chroot_local_user=YES Give the correct permissions to the uploaded files local_umask=022 Force ftp to show files begin with dot like ".htaccess" add to the bottom this line force_dot_files=YES Bypass the writable check in ftp server add to the bottom this line allow_writeable_chroot=YES
 
-** Use a <scp> in script..
+** Use scp(secure copy) in script..
   
 ** Use Git to synchronize changes..
