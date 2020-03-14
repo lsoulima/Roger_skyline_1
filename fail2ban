@@ -1,0 +1,123 @@
+===========================================** Prepare the System **=========================================
+
+$> apt-get update -y 
+$> apt-get upgrade -y
+
+============================================** Install Fail2Ban **===========================================
+
+$> sudo apt-get install fail2ban
+
+============================================** Configure Fail2Ban **=========================================
+
+$> sudo vi /etc/fail2ban/jail.local
+
+==> Add or modify the following lines:
+
+-------------------------------------------------------------------------------------------------------------
+##To block failed login attempts use the below jail. 
+[apache] 
+enabled = true 
+port = http,https 
+filter = apache-auth 
+logpath = /var/log/apache2/*error.log 
+maxretry = 3 
+bantime = 600 
+#ignoreip = 10.12.8.3
+
+##To block the remote host that is trying to request suspicious URLs, use the below jail. 
+[apache-overflows] 
+enabled = true 
+port = http,https 
+filter = apache-overflows 
+logpath = /var/log/apache2/*error.log 
+maxretry = 3 
+bantime = 600 
+#ignoreip = 10.12.8.3
+
+##To block the remote host that is trying to search for scripts on the website to execute, use the below jail. 
+[apache-noscript] 
+enabled = true 
+port = http,https 
+filter = apache-noscript 
+logpath = /var/log/apache2/*error.log 
+maxretry = 3 
+bantime = 600 
+#ignoreip = 10.12.8.3
+
+##To block the remote host that is trying to request malicious bot, use below jail. 
+[apache-badbots] 
+enabled = true 
+port = http,https 
+filter = apache-badbots 
+logpath = /var/log/apache2/*error.log 
+maxretry = 3 
+bantime = 600 
+#ignoreip = 10.12.8.3
+
+##To stop DOS attack from remote host. [http-get-dos] 
+enabled = true 
+port = http,https 
+filter = http-get-dos 
+logpath = /var/log/apache*/access.log 
+maxretry = 400 
+findtime = 400 
+bantime = 200 
+#ignoreip = 10.12.8.3 
+action = iptables[name=HTTP, port=http, protocol=tcp]
+
+##To block the failed login attempts on the SSH server, use the below jail. 
+[ssh] 
+enabled = true 
+port = ssh 
+filter = sshd 
+logpath = /var/log/auth.log 
+maxretry = 3 
+bantime = 600 
+#ignoreip = 10.12.8.3
+--------------------------------------------------------------------------------------------------------------------
+		
+#Brief description
+		logpath : Name of the logfile that fail2ban checks for failed login attempts.
+		maxretry : Maximum number of failed login attempts before a host is blocked by fail2ban.
+		bantime : Specifies the number of seconds that a remote host will be blocked by Fail2ban.
+		findtime : The time period in seconds in which we’re counting “retries”.
+		ignoreip : This is the list of IP addresses that can not be blocked by Fail2ban.
+
+==> Create the filter en executant : 
+$> sudo vi /etc/fail2ban/filters.d/http-get-dos.conf
+
+---------------------------------------------------------------------------------------------------------------------
+# Fail2Ban configuration file 
+[Definition]
+
+# Option: failregex 
+# Note: This regex will match any GET entry in your logs, so basically all valid and not valid entries are a match. 
+# You should set up in the jail.conf file, the maxretry and findtime carefully in order to avoid false positives. 
+failregex = ^<HOST> -.*"(GET|POST).* 
+# Option: ignoreregex 
+ignoreregex =
+---------------------------------------------------------------------------------------------------------------------
+
+$> sudo systemctl restart fail2ban
+$> sudo iptables -L
+$> sudo fail2ban-client status
+
+=================================================** Test Fail2Ban **=================================================
+
+
+==> Test Fail2Ban for Apache DOS Attack
+
+$> ab -n 1000 -c 20 http://10.12.100.8/                 # in mac
+$> sudo tail -f /var/log/fail2ban.log
+$> sudo fail2ban-client status http-get-dos
+
+
+==> Test Fail2Ban for SSH Failed Login Attempts
+
+$> sudo fail2ban-client status ssh
+
+==> If you want to unban the IP address of the remote host before the banning time limit expires
+
+$> sudo fail2ban-client set ssh unbanip 10.12.100.50
+$> sudo fail2ban-client set apache unbanip 10.12.8.3
+
